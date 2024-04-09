@@ -1,3 +1,4 @@
+import unittest
 import mysql.connector
 connection = mysql.connector.connect(user = 'root', database = 'example', password = 'Elite102Code2College@987')
 cursor = connection.cursor()
@@ -31,29 +32,48 @@ def checkAccountBalance(email):
 	accountBalanceQuery = (f"SELECT * FROM accounts WHERE Email = {email};")
 	cursor.execute(accountBalanceQuery)
 
+	if(cursor.fetchone()[0] <= 0):
+		print("EMAIL NOT FOUND")
+		return False
+
 	print(f"YOUR ACCOUNT DETAILS:")
 	for item in cursor:
 		print(item)
 
+	return True
+
 def depositFunds(email, amountToDeposit):
 	getBalanceQuery = (f"SELECT Balance FROM accounts WHERE Email = {email};") #get the deposit
 	cursor.execute(getBalanceQuery)
+
+	if(cursor.fetchone()[0] <= 0):
+		print("EMAIL NOT FOUND")
+		return False
+
 	newBalance = cursor + amountToDeposit
 
 	addNewBalanceQuery = (f"INSERT INTO accounts(Email, Balance) VALUES({email}, {newBalance});")
 	cursor.execute(addNewBalanceQuery)
+
+	return True
 	
 
 def withdrawFunds(email, amountToWithdraw):
 	getBalanceQuery = (f"SELECT Balance FROM accounts WHERE Email = {email};") #get the deposit
 	cursor.execute(getBalanceQuery)
+
+	if(cursor.fetchone()[0] <= 0):
+		print("EMAIL NOT FOUND")
+		return False
+
 	newBalance = cursor - amountToWithdraw
 	if(newBalance < 0):
 		print("NOT SUFFICIENT FUNDS.")
-		return
+		return False
 
 	addNewBalanceQuery = (f"INSERT INTO accounts(Email, Balance) VALUES({email}, {newBalance});")
 	cursor.execute(addNewBalanceQuery)
+	return True
 
 def createNewAccount(email, password, name, balance):
 	print("THANK YOU. PROCESSING...")
@@ -67,24 +87,54 @@ def createNewAccount(email, password, name, balance):
 	for item in cursor:
 		print(item)
 	print("IF ANYTHING IS INCORRECT, PLEASE DON'T HESITATE TO CHANGE YOUR ACCOUNT DETAILS.")
+	return True
 
 def deleteAccount(email):
-	pass
+	getDeleteQuery = (f"SELECT Email FROM accounts WHERE Email = {email};") 
+	cursor.execute(getDeleteQuery)
+	
+	if(cursor.fetchone()[0] <= 0):
+		print("EMAIL NOT FOUND")
+		return False
+	
+	deleteCommand = (f"DELETE FROM accounts WHERE Email = {email};")
+	cursor.execute(deleteCommand)
+
+	return True
 
 def modifyAccountDetails(email, value, columnToChange):
 	if(columnToChange.lower() == "email"):
 		changeEmail = (f"INSERT INTO accounts(Email) VALUES({value});")
 		cursor.execute(changeEmail)
+		if(cursor.fetchone()[0] <= 0):
+			print("EMAIL NOT FOUND")
+			return False
+		return True
 
 	elif(columnToChange.lower() == "name"):
 		changeName = (f"INSERT INTO accounts(Email, Name) VALUES({email}, {value});")
 		cursor.execute(changeName)
+		if(cursor.fetchone()[0] <= 0):
+			print("EMAIL NOT FOUND")
+			return False
+		return True
 		
 	elif(columnToChange.lower() == "password"):
 		changePassword = (f"INSERT INTO accounts(Email, Password) VALUES({email}, {value});")
 		cursor.execute(changePassword)
-
+		if(cursor.fetchone()[0] <= 0):
+			print("EMAIL NOT FOUND")
+			return False
+		return True
 	else:
 		print("INVALID INPUT.")
+		return False
 
+
+
+class testApplication(unittest.TestCase):
+	
+	def testCREATENEWACCOUNT(self):
+		result = createNewAccount("anushkabhave8@gmail.com", "Test@123", "Anushka Bhave", 1.00)
+		testApplication.assertTrue(result)
 
