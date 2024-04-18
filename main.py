@@ -122,7 +122,7 @@ def createNewAccount(email, password, name, balance):
 
 	#print(f"INSERT INTO accounts VALUES('{str(name)}', '{str(email)}', '{str(password)}', {float(balance)});")
 	#print()
-	createAccount = (f"INSERT INTO accounts VALUES('{str(name)}', '{str(email)}', '{str(password)}', {float(balance)});")
+	createAccount = (f"INSERT INTO accounts VALUES('{str(name.upper())}', '{str(email.lower())}', '{str(password)}', {float(balance)});")
 
 	cursor.execute(createAccount) #error here
 
@@ -135,15 +135,17 @@ def createNewAccount(email, password, name, balance):
 	return True
 
 def deleteAccount(email):
-	getDeleteQuery = (f"SELECT Email FROM accounts WHERE Email = '{email}';") 
-	cursor.execute(getDeleteQuery)
+	#getDeleteQuery = (f"SELECT Email FROM accounts WHERE Email = '{email}';") 
+	#cursor.execute(getDeleteQuery)
 	
-	if(cursor.fetchone()[0] <= 0):
-		print("EMAIL NOT FOUND")
-		return False
+	#if(cursor.fetchone()[0] <= 0):
+	#	print("EMAIL NOT FOUND")
+	#	return False
 	
 	deleteCommand = (f"DELETE FROM accounts WHERE Email = '{email}';")
 	cursor.execute(deleteCommand)
+
+	print("ACCOUNT DELETED")
 
 	return True
 
@@ -208,9 +210,11 @@ print()
 #createNewAccount("anushkabhave8@gmail.com", "C2C", "Anushka Bhave", 0.0)
 createNewAccount("bhave.alex@gmail.com", "C2C123", "Arin Bhave", 0.0)
 
-checkAccountBalance("bhave.alex@gmail.com")
+#checkAccountBalance("bhave.alex@gmail.com")
 
-depositFunds("bhave.alex@gmail.com", 1.0)
+#depositFunds("bhave.alex@gmail.com", 1.0)
+
+deleteAccount("bhave.alex@gmail.com")
 
 print()
 
