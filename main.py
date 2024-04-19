@@ -80,12 +80,7 @@ def depositFunds(email, amountToDeposit): #THIS IS FUNDAMENTALLY FLAWED?
 	updateFundsQuery = (f"UPDATE accounts SET Balance = {total} WHERE Email = '{email}';") #get the deposit
 	cursor.execute(updateFundsQuery)
 
-	accountBalanceQuery2 = (f"SELECT Balance FROM accounts WHERE Email = '{email}';")
-	cursor.execute(accountBalanceQuery2)
-
-	print(f"YOUR ACCOUNT DETAILS:")
-	for item in cursor:
-		print(item)
+	
 
 		
 	#if(cursor.fetchone()[0] <= 0):
@@ -176,6 +171,8 @@ def modifyAccountDetails(email, value, columnToChange): #THIS IS FUNDAMENTALLY F
 	else:
 		print("INVALID INPUT.")
 		return False
+	
+
 
 
 
@@ -210,11 +207,13 @@ print()
 #createNewAccount("anushkabhave8@gmail.com", "C2C", "Anushka Bhave", 0.0)
 createNewAccount("bhave.alex@gmail.com", "C2C123", "Arin Bhave", 0.0)
 
-#checkAccountBalance("bhave.alex@gmail.com")
+checkAccountBalance("bhave.alex@gmail.com")
 
-#depositFunds("bhave.alex@gmail.com", 1.0)
+depositFunds("bhave.alex@gmail.com", 1.0)
 
-deleteAccount("bhave.alex@gmail.com")
+checkAccountBalance("bhave.alex@gmail.com")
+
+#deleteAccount("bhave.alex@gmail.com")
 
 print()
 
