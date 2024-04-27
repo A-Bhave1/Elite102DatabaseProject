@@ -24,7 +24,6 @@ def menuScreen():
 	print()
 
 	name = input("What is your name? >>> ")
-	email = input("What is your email? >>> ")
 	print()
 	name = name.capitalize()
 	print(f"Welcome {name}! We're happy to see you here.")
@@ -37,8 +36,10 @@ def menuScreen():
 	input = input("Please select what you would like to do:")
 	if(input == 1):
 		password = input("What would you like your password to be? >>> ")
+		email = input("What is your email? >>> ")
 		createNewAccount(email, name, password, 0.0)
 	elif(input == 2):
+		email = input("What is your email? >>> ")
 		password = input("What is your password? >>> ")
 		print()
 		print("1. Deposit Funds")
@@ -73,12 +74,18 @@ def depositFunds(email, amountToDeposit): #THIS IS FUNDAMENTALLY FLAWED?
 	accountBalanceQuery = (f"SELECT Balance FROM accounts WHERE Email = '{email}';")
 	cursor.execute(accountBalanceQuery)
 
-	total = amountToDeposit
+	total = 0
 	for item in cursor:
-		total += float(item)
+		print(f"TROUBLESHOOTING: ADDITION FOR DEPOSIT FUNDS --- {item}, {amountToDeposit}")
+		print()
+
+		total = item + amountToDeposit
+		#item.value
 
 	updateFundsQuery = (f"UPDATE accounts SET Balance = {total} WHERE Email = '{email}';") #get the deposit
 	cursor.execute(updateFundsQuery)
+
+	checkAccountBalance(email)
 
 	
 
@@ -96,6 +103,25 @@ def depositFunds(email, amountToDeposit): #THIS IS FUNDAMENTALLY FLAWED?
 	
 
 def withdrawFunds(email, amountToWithdraw):
+	#first, get the balance in the account
+	viewAccountBalanceQuery = (f"SELECT Balance FROM accounts WHERE Email = '{email}';")
+	cursor.execute(viewAccountBalanceQuery)
+
+	total = 0
+	for item in cursor:
+		total += float(item)
+
+	#update the balance (if it's over the amount to withdraw)
+	if(total < amountToWithdraw):
+		print("NOT ENOUGH FUNDS")
+		return False
+	else:
+		updateFundsQuery = (f"UPDATE accounts SET Balance = {total-amountToWithdraw} WHERE Email = '{email}';") #get the deposit
+		cursor.execute(updateFundsQuery)
+		checkAccountBalance(email)
+
+
+	"""
 	getBalanceQuery = (f"SELECT Balance FROM accounts WHERE Email = '{email}';") #get the deposit
 	cursor.execute(getBalanceQuery)
 
@@ -111,6 +137,7 @@ def withdrawFunds(email, amountToWithdraw):
 	addNewBalanceQuery = (f"INSERT INTO accounts(Email, Balance) VALUES('{email}', {newBalance});")
 	cursor.execute(addNewBalanceQuery)
 	return True
+	"""
 
 def createNewAccount(email, password, name, balance):
 	print("THANK YOU. PROCESSING...")
@@ -145,6 +172,23 @@ def deleteAccount(email):
 	return True
 
 def modifyAccountDetails(email, value, columnToChange): #THIS IS FUNDAMENTALLY FLAWED, FIX IT!
+	#three things that can be changed: email, name, and password
+ 
+	if(columnToChange.lower() == 'email'):
+		changeRequest = (f"UPDATE accounts SET Email = '{value}' WHERE Email = '{email}';")
+	elif(columnToChange.lower() == 'name'):
+		changeRequest = (f"UPDATE accounts SET Name = '{value}' WHERE Email = '{email}';")
+	elif(columnToChange.lower() == 'password'):
+		changeRequest = (f"UPDATE accounts SET Password = '{value}' WHERE Email = '{email}';")
+	else:
+		print("INVALID INPUT.")
+		return False
+	
+	cursor.execute(changeRequest)
+
+	viewAccountDetails()
+	
+	"""
 	if(columnToChange.lower() == "email"):
 		changeEmail = (f"INSERT INTO accounts(Email) VALUES('{value}');")
 		cursor.execute(changeEmail)
@@ -171,9 +215,19 @@ def modifyAccountDetails(email, value, columnToChange): #THIS IS FUNDAMENTALLY F
 	else:
 		print("INVALID INPUT.")
 		return False
+	"""
 	
 
+def viewAccountDetails(email):
+	viewAccountDetailsQuery = (f"SELECT * FROM accounts WHERE Email = '{email}'") #get the information from the table
+	cursor.execute(viewAccountDetailsQuery)
 
+	print("YOUR ACCOUNT DETAILS") #print data
+	for item in cursor:
+		print(item)
+		print('\n')
+
+	return True #attests that the function went off without a hitch
 
 
 class testApplication(unittest.TestCase):
@@ -204,16 +258,11 @@ class testApplication(unittest.TestCase):
 
 print()
 
-#createNewAccount("anushkabhave8@gmail.com", "C2C", "Anushka Bhave", 0.0)
-createNewAccount("bhave.alex@gmail.com", "C2C123", "Arin Bhave", 0.0)
+createNewAccount("anushkabhave@gmail.com", "C2C123", "Anushka Bhave", 100.0)
 
-checkAccountBalance("bhave.alex@gmail.com")
+checkAccountBalance("anushkabhave@gmail.com")
 
-depositFunds("bhave.alex@gmail.com", 1.0)
-
-checkAccountBalance("bhave.alex@gmail.com")
-
-#deleteAccount("bhave.alex@gmail.com")
+depositFunds("anushkabhave@gmail.com", 10.0)
 
 print()
 
