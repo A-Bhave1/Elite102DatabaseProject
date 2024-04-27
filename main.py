@@ -3,19 +3,6 @@ import mysql.connector
 connection = mysql.connector.connect(user = 'root', database = 'accounts', password = 'Elite102Code2College@987')
 cursor = connection.cursor()
 
-#addData = ("INSERT INTO example.inventory(ID, NameOfItem, Price, CategoryOfItem, DateCreated, NumberSold) VALUES (3, 'Gift Bags', 1.00, 'Party Goods', '2024-04-01', 20);")
-
-#cursor.execute(addData)
-
-#testQuery = ("SELECT * FROM example.inventory")
-#cursor.execute(testQuery)
-
-#for item in cursor:
- #   print(item)
-
-#cursor.close()
-#connection.close()
-
 
 def menuScreen():	
 	print("-----------------------------------------------------------")
@@ -24,34 +11,79 @@ def menuScreen():
 	print()
 
 	name = input("What is your name? >>> ")
+  	
 	print()
 	name = name.capitalize()
 	print(f"Welcome {name}! We're happy to see you here.")
 
 	print()
 	
+	print("------------------------------")
 	print("1. Create an Account")
 	print("2. Login")
+	print("------------------------------")
 
-	input = input("Please select what you would like to do:")
-	if(input == 1):
+
+	selection = input("Please select what you would like to do: ")
+	if((isinstance(selection, int)) and (int(selection) > 2 or int(selection) <= 0)): #if it's not one or two
+		print("INVALID INPUT")
+		return
+	
+
+	if(int(selection) == 1):
 		password = input("What would you like your password to be? >>> ")
 		email = input("What is your email? >>> ")
 		createNewAccount(email, name, password, 0.0)
-	elif(input == 2):
+	elif(int(selection) == 2):
 		email = input("What is your email? >>> ")
 		password = input("What is your password? >>> ")
 		print()
-		print("1. Deposit Funds")
-		print("2. Withdraw Funds")
+		print("---------------------------")
+		print("1. View Funds")
+		print("2. Deposit Funds")
+		print("3. Withdraw Funds")
+		print("4. Modify Account Details")
+		print("5. Delete Account")
+		print("---------------------------")
 		option = input("Select an action >>> ")
-		if(option == 1):
+
+		if((isinstance(option, int)) and (int(option) > 5 or int(option) < 1)):
+			print("INVALID INPUT")
+			return
+
+		if(int(option) == 1):
+			checkAccountBalance(email)
+		elif(int(option) == 2):
 			amountDeposit = input("How many funds? >>> ")
 			depositFunds(email, float(amountDeposit))
-		elif(option == 2):
+		elif(int(option) == 3):
 			amountWithDraw = input("How many funds? >>> ")
 			withdrawFunds(email, float(amountWithDraw))
+		elif(int(option) == 4):
+			print("1. Name")
+			print("2. Password")
+			print("3. Email")
 
+			option = input("What would you like to modify? >>> ")
+			value = input("What would you like to change it to? >>> ")
+
+			if(option == 1):
+				modifyAccountDetails(email, value, "name")
+			elif(option == 2):
+				modifyAccountDetails(email, value, "password")
+			elif(option == 3):
+				modifyAccountDetails(email, value, "email")
+			else:
+				print("INVALID INPUT")
+				return
+
+		elif(selection == 5):
+			option = input("Are you sure you want to delete your account? All your data, including your money, will be wiped from our system.")
+			if(option.lower() == 'yes' or option.lower() == 'y'):
+				deleteAccount(email)
+
+#def inputValidation():
+#	pass
 
 
 def checkAccountBalance(email):
@@ -73,16 +105,11 @@ def checkAccountBalance(email):
 def depositFunds(email, amountToDeposit): #THIS IS FUNDAMENTALLY FLAWED?
 	accountBalanceQuery = (f"SELECT Balance FROM accounts WHERE Email = '{email}';")
 	cursor.execute(accountBalanceQuery)
+	balance = cursor.fetchall()
 
-	total = 0
-	for item in cursor:
-		print(f"TROUBLESHOOTING: ADDITION FOR DEPOSIT FUNDS --- {item}, {amountToDeposit}")
-		print()
+	print(f"TROUBLESHOOTING: BALANCE IS {balance[0][0]}.")
 
-		total = item + amountToDeposit
-		#item.value
-
-	updateFundsQuery = (f"UPDATE accounts SET Balance = {total} WHERE Email = '{email}';") #get the deposit
+	updateFundsQuery = (f"UPDATE accounts SET Balance = {float(balance[0][0]) + amountToDeposit} WHERE Email = '{email}';") #get the deposit
 	cursor.execute(updateFundsQuery)
 
 	checkAccountBalance(email)
@@ -258,11 +285,9 @@ class testApplication(unittest.TestCase):
 
 print()
 
-createNewAccount("anushkabhave@gmail.com", "C2C123", "Anushka Bhave", 100.0)
-
-checkAccountBalance("anushkabhave@gmail.com")
-
-depositFunds("anushkabhave@gmail.com", 10.0)
+#test = input("enter a letter >>> ")
+menuScreen()
+#print(test)
 
 print()
 
