@@ -35,55 +35,88 @@ def menuScreen():
 		email = input("What is your email? >>> ")
 		createNewAccount(email, name, password, 0.0)
 	elif(int(selection) == 2):
-		email = input("What is your email? >>> ")
-		password = input("What is your password? >>> ")
-		print()
-		print("---------------------------")
-		print("1. View Funds")
-		print("2. Deposit Funds")
-		print("3. Withdraw Funds")
-		print("4. Modify Account Details")
-		print("5. Delete Account")
-		print("---------------------------")
-		option = input("Select an action >>> ")
+		passwordValidation()
 
-		if((isinstance(option, int)) and (int(option) > 5 or int(option) < 1)):
+
+def passwordValidation():
+	email = input("What is your email? >>> ")
+	password = input("What is your password? >>> ")
+
+	checkPasswordQuery = (f"SELECT Password FROM accounts WHERE Email = '{email}';")
+	cursor.execute(checkPasswordQuery)
+
+	passwordInSystem = cursor.fetchall()
+
+	i = 3
+	while(passwordInSystem[0][0] != password and i > 1):
+		i -= 1
+		print(f"WRONG PASSWORD. YOU HAVE {i} TRIES REMAINING.")
+		password = input("What is your password? >>> ")
+		cursor.execute(checkPasswordQuery)
+		passwordInSystem = cursor.fetchall()
+
+	if(i == 1):
+		print("BANK ACCOUNT LOCKED. PLEASE RETRY IN A FEW MINUTES.")
+		print()
+		return
+	else:
+		loginScreen(email)
+
+	return email
+
+
+def loginScreen(email):
+	
+	print()
+	print("---------------------------")
+	print("1. View Funds")
+	print("2. Deposit Funds")
+	print("3. Withdraw Funds")
+	print("4. Modify Account Details")
+	print("5. Delete Account")
+	print("---------------------------")
+	option = input("Select an action >>> ")
+
+
+	if(option.isnumeric and (int(option) > 5 or int(option) < 1)):
+		print("INVALID INPUT")
+		return
+
+	if(int(option) == 1):
+		checkAccountBalance(email)
+	elif(int(option) == 2):
+		amountDeposit = input("How many funds? >>> ")
+		depositFunds(email, float(amountDeposit))
+	elif(int(option) == 3):
+		amountWithDraw = input("How many funds? >>> ")
+		withdrawFunds(email, float(amountWithDraw))
+	elif(int(option) == 4):
+		print("1. Name")
+		print("2. Password")
+		print("3. Email")
+
+		option = input("What would you like to modify? >>> ")
+		value = input("What would you like to change it to? >>> ")
+
+
+		if(not isinstance(option, int) and option > 4 and option < 0):
 			print("INVALID INPUT")
 			return
 
 		if(int(option) == 1):
-			checkAccountBalance(email)
+			modifyAccountDetails(email, value, "name")
 		elif(int(option) == 2):
-			amountDeposit = input("How many funds? >>> ")
-			depositFunds(email, float(amountDeposit))
+			modifyAccountDetails(email, value, "password")
 		elif(int(option) == 3):
-			amountWithDraw = input("How many funds? >>> ")
-			withdrawFunds(email, float(amountWithDraw))
-		elif(int(option) == 4):
-			print("1. Name")
-			print("2. Password")
-			print("3. Email")
+			modifyAccountDetails(email, value, "email")
+		else:
+			print("INVALID INPUT")
+			return
 
-			option = input("What would you like to modify? >>> ")
-			value = input("What would you like to change it to? >>> ")
-
-			if(option == 1):
-				modifyAccountDetails(email, value, "name")
-			elif(option == 2):
-				modifyAccountDetails(email, value, "password")
-			elif(option == 3):
-				modifyAccountDetails(email, value, "email")
-			else:
-				print("INVALID INPUT")
-				return
-
-		elif(selection == 5):
-			option = input("Are you sure you want to delete your account? All your data, including your money, will be wiped from our system.")
-			if(option.lower() == 'yes' or option.lower() == 'y'):
-				deleteAccount(email)
-
-#def inputValidation():
-#	pass
+	elif(int(option) == 5):
+		option = input("Are you sure you want to delete your account? All your data, including your money, will be wiped from our system.")
+		if(option.lower() == 'yes' or option.lower() == 'y'):
+			deleteAccount(email)
 
 
 def checkAccountBalance(email):
@@ -96,9 +129,8 @@ def checkAccountBalance(email):
 	#	print("EMAIL NOT FOUND")
 	#	return False
 
-	print(f"YOUR ACCOUNT DETAILS:")
-	for item in cursor:
-		print(item)
+	balance = cursor.fetchall()
+	print(f"YOUR ACCOUNT DETAILS: {balance[0][0]}")
 
 	return True
 
@@ -107,24 +139,12 @@ def depositFunds(email, amountToDeposit): #THIS IS FUNDAMENTALLY FLAWED?
 	cursor.execute(accountBalanceQuery)
 	balance = cursor.fetchall()
 
-	print(f"TROUBLESHOOTING: BALANCE IS {balance[0][0]}.")
+	#print(f"TROUBLESHOOTING: BALANCE IS {balance[0][0]}.")
 
 	updateFundsQuery = (f"UPDATE accounts SET Balance = {float(balance[0][0]) + amountToDeposit} WHERE Email = '{email}';") #get the deposit
 	cursor.execute(updateFundsQuery)
 
 	checkAccountBalance(email)
-
-	
-
-		
-	#if(cursor.fetchone()[0] <= 0):
-	#	print("EMAIL NOT FOUND")
-	#	return False
-
-	#newBalance = cursor + amountToDeposit
-
-	#addNewBalanceQuery = (f"INSERT INTO accounts(Email, Balance) VALUES('{email}', {newBalance});")
-	#cursor.execute(addNewBalanceQuery)
 
 	return True
 	
@@ -134,16 +154,14 @@ def withdrawFunds(email, amountToWithdraw):
 	viewAccountBalanceQuery = (f"SELECT Balance FROM accounts WHERE Email = '{email}';")
 	cursor.execute(viewAccountBalanceQuery)
 
-	total = 0
-	for item in cursor:
-		total += float(item)
+	total = cursor.fetchall()
 
 	#update the balance (if it's over the amount to withdraw)
-	if(total < amountToWithdraw):
+	if(float(total[0][0]) < amountToWithdraw):
 		print("NOT ENOUGH FUNDS")
 		return False
 	else:
-		updateFundsQuery = (f"UPDATE accounts SET Balance = {total-amountToWithdraw} WHERE Email = '{email}';") #get the deposit
+		updateFundsQuery = (f"UPDATE accounts SET Balance = {float(total[0][0]) - amountToWithdraw} WHERE Email = '{email}';") #get the deposit
 		cursor.execute(updateFundsQuery)
 		checkAccountBalance(email)
 
@@ -198,7 +216,7 @@ def deleteAccount(email):
 
 	return True
 
-def modifyAccountDetails(email, value, columnToChange): #THIS IS FUNDAMENTALLY FLAWED, FIX IT!
+def modifyAccountDetails(email, value, columnToChange):
 	#three things that can be changed: email, name, and password
  
 	if(columnToChange.lower() == 'email'):
@@ -280,13 +298,25 @@ class testApplication(unittest.TestCase):
 		testApplication.assertTrue(result)
 
 	def testDELETEACCOUNT(self):
-		result = deleteAccount("anushkabhave8@")
+		result = deleteAccount("anushkabhave8@gmail.com")
 		testApplication.assertTrue(result)
 
 print()
 
 #test = input("enter a letter >>> ")
-menuScreen()
+
+#createNewAccount("a@gmail.com", "test", "A Bhave", 0.0)
+
+#email = passwordValidation()
+
+print()
+#option = input("start? >>> ")
+#while(option.lower() == "yes"):
+#	loginScreen(email)
+#	option = input("go again? >>> ")
+#	print()
+	
+
 #print(test)
 
 print()
