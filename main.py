@@ -57,7 +57,7 @@ def menuScreen():
 		#os.system('cls')
 		return False
 
-	
+#called by menuScreen; validates the username and password upon login
 def passwordValidation():
 	email = input("What is your email? >>> ")
 	password = input("What is your password? >>> ")
@@ -93,7 +93,7 @@ def passwordValidation():
 
 	return email
 
-
+#the GUI for someone who has logged in
 def loginScreen(email):
 	print("-----------------------------------------------------------")
 	print("---------------------CODE2COLLEGE BANK---------------------")
@@ -199,7 +199,7 @@ def loginScreen(email):
 
 		return False
 
-
+#checking account specified's balance, called by depositFunds and withdrawFunds in order to display the account balance after deposit/withdrawal
 def checkAccountBalance(email):
 	print()
 	accountBalanceQuery = (f"SELECT Balance FROM accounts1 WHERE Email = '{email}';")
@@ -215,7 +215,7 @@ def checkAccountBalance(email):
 
 	return True
 
-
+#depositing funds into the account specified
 def depositFunds(email, amountToDeposit): 
 	accountBalanceQuery = (f"SELECT Balance FROM accounts1 WHERE Email = '{email}';")
 	cursor.execute(accountBalanceQuery)
@@ -230,7 +230,7 @@ def depositFunds(email, amountToDeposit):
 
 	return True
 	
-
+#withdrawing funds from the account specified
 def withdrawFunds(email, amountToWithdraw):
 	#first, get the balance in the account
 	viewAccountBalanceQuery = (f"SELECT Balance FROM accounts1 WHERE Email = '{email}';")
@@ -266,7 +266,7 @@ def withdrawFunds(email, amountToWithdraw):
 	return True
 	"""
 
-
+#creating a new account, called by menuScreen
 def createNewAccount(email, password, name, balance):
 	print("THANK YOU. PROCESSING...")
 
@@ -280,7 +280,7 @@ def createNewAccount(email, password, name, balance):
 	print("IF ANYTHING IS INCORRECT, PLEASE DON'T HESITATE TO CHANGE YOUR ACCOUNT DETAILS.")
 	return True
 
-
+#deleting an account, called by loginScreen
 def deleteAccount(email):
 	#getDeleteQuery = (f"SELECT Email FROM accounts1 WHERE Email = '{email}';") 
 	#cursor.execute(getDeleteQuery)
@@ -298,7 +298,7 @@ def deleteAccount(email):
 
 	return True
 
-
+#modifying account specified's details
 def modifyAccountDetails(email, value, columnToChange):
 	#three things that can be changed: email, name, and password
  
@@ -320,7 +320,7 @@ def modifyAccountDetails(email, value, columnToChange):
 
 	return email
 	
-	
+#private inner function to make some things easier; called by createNewAccount and modifyAccountDetails
 def viewAccountDetails(email):
 	viewAccountDetailsQuery = (f"SELECT * FROM accounts1 WHERE Email = '{email}'") #get the information from the table
 	cursor.execute(viewAccountDetailsQuery)
