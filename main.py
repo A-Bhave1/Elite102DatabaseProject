@@ -1,56 +1,81 @@
 import unittest
+import os
+import time
 import mysql.connector
 connection = mysql.connector.connect(user = 'root', database = 'accounts', password = 'Elite102Code2College@987')
 cursor = connection.cursor()
 
 
+#displays the initial menu screen
 def menuScreen():	
+
 	print("-----------------------------------------------------------")
 	print("---------------------CODE2COLLEGE BANK---------------------")
 	print("-----------------------------------------------------------")
 	print()
 
-	name = input("What is your name? >>> ")
-  	
-	print()
-	name = name.capitalize()
-	print(f"Welcome {name}! We're happy to see you here.")
-
-	print()
-	
 	print("------------------------------")
 	print("1. Create an Account")
 	print("2. Login")
+	print("3. Exit")
 	print("------------------------------")
 
 
 	selection = input("Please select what you would like to do: ")
-	if((isinstance(selection, int)) and (int(selection) > 2 or int(selection) <= 0)): #if it's not one or two
+	if((isinstance(selection, int)) and (int(selection) > 3 and int(selection) <= 0)): #if it's not one or two
 		print("INVALID INPUT")
-		return
+		return False
 	
 
 	if(int(selection) == 1):
-		password = input("What would you like your password to be? >>> ")
+		name = input("What is your name? >>> ")
 		email = input("What is your email? >>> ")
-		createNewAccount(email, name, password, 0.0)
+		password = input("What would you like your password to be? >>> ")
+		
+		createNewAccount(email, password, name, 0.0)
+		print("Clearing in 3 seconds...\n")
+		time.sleep(3)
+		os.system('cls')
+		return True
 	elif(int(selection) == 2):
-		passwordValidation()
+		email = passwordValidation()
 
+		print("Clearing in 3 seconds...\n")
+		time.sleep(3)
+		os.system('cls')
+		
+		if(email == "not in system"):
+			return menuScreen()
+		elif(email == False):
+			return False
+		else:
+			return email
+		
+	elif(int(selection) == 3):
+		#print("Clearing in 3 seconds...\n")
+		#time.sleep(3)
+		#os.system('cls')
+		return False
 
+	
 def passwordValidation():
 	email = input("What is your email? >>> ")
 	password = input("What is your password? >>> ")
 
-	checkPasswordQuery = (f"SELECT Password FROM accounts WHERE Email = '{email}';")
+	checkPasswordQuery = (f"SELECT Password FROM accounts1 WHERE Email = '{email}';")
 	cursor.execute(checkPasswordQuery)
 
 	passwordInSystem = cursor.fetchall()
 
+	if(len(passwordInSystem) == 0):
+		print("NOT IN SYSTEM. PLEASE CREATE AN ACCOUNT.")
+
+		return "not in system"
+
 	i = 3
 	while(passwordInSystem[0][0] != password and i > 1):
 		i -= 1
-		print(f"WRONG PASSWORD. YOU HAVE {i} TRIES REMAINING.")
+		print(f"\nWRONG PASSWORD. YOU HAVE {i} TRIES REMAINING.")
 		password = input("What is your password? >>> ")
 		cursor.execute(checkPasswordQuery)
 		passwordInSystem = cursor.fetchall()
@@ -58,38 +83,70 @@ def passwordValidation():
 	if(i == 1):
 		print("BANK ACCOUNT LOCKED. PLEASE RETRY IN A FEW MINUTES.")
 		print()
-		return
-	else:
-		loginScreen(email)
+		return False
+
+	getNameQuery = (f"SELECT Name FROM accounts1 WHERE Email = '{email}';")
+	cursor.execute(getNameQuery)
+	name = cursor.fetchall()
+
+	print(f"\nWelcome {name[0][0]}. ")
 
 	return email
 
 
 def loginScreen(email):
-	
+	print("-----------------------------------------------------------")
+	print("---------------------CODE2COLLEGE BANK---------------------")
+	print("-----------------------------------------------------------")
 	print()
+
+
+	print("          ACTIONS    ")
 	print("---------------------------")
 	print("1. View Funds")
 	print("2. Deposit Funds")
 	print("3. Withdraw Funds")
 	print("4. Modify Account Details")
 	print("5. Delete Account")
+	print("6. Log out")
 	print("---------------------------")
 	option = input("Select an action >>> ")
 
 
-	if(option.isnumeric and (int(option) > 5 or int(option) < 1)):
+	if(option.isalpha()):
 		print("INVALID INPUT")
-		return
+		time.sleep(2)
+		os.system('cls')
+
+		return loginScreen(email)
+
+	if(option.isnumeric and (int(option) > 6 or int(option) < 1)):
+		print("INVALID INPUT")
+		time.sleep(2)
+		os.system('cls')
+
+		return loginScreen(email)
 
 	if(int(option) == 1):
 		checkAccountBalance(email)
+		time.sleep(3)
+		os.system('cls')
+		return email
+
 	elif(int(option) == 2):
 		amountDeposit = input("How many funds? >>> ")
 		depositFunds(email, float(amountDeposit))
+		time.sleep(3)
+		os.system('cls')
+		return email
+
 	elif(int(option) == 3):
 		amountWithDraw = input("How many funds? >>> ")
 		withdrawFunds(email, float(amountWithDraw))
+		time.sleep(3)
+		os.system('cls')
+		return email
+
 	elif(int(option) == 4):
 		print("1. Name")
 		print("2. Password")
@@ -99,29 +156,53 @@ def loginScreen(email):
 		value = input("What would you like to change it to? >>> ")
 
 
-		if(not isinstance(option, int) and option > 4 and option < 0):
+		if(not isinstance(option, int) and int(option) > 4 and int(option) < 0):
 			print("INVALID INPUT")
 			return
 
 		if(int(option) == 1):
-			modifyAccountDetails(email, value, "name")
+			email = modifyAccountDetails(email, value, "name")
 		elif(int(option) == 2):
-			modifyAccountDetails(email, value, "password")
+			email = modifyAccountDetails(email, value, "password")
 		elif(int(option) == 3):
-			modifyAccountDetails(email, value, "email")
+			email = modifyAccountDetails(email, value, "email")
 		else:
 			print("INVALID INPUT")
 			return
+		
+		time.sleep(3)
+		os.system('cls')
+
+		return email
 
 	elif(int(option) == 5):
-		option = input("Are you sure you want to delete your account? All your data, including your money, will be wiped from our system.")
+		print("Are you sure you want to delete your account? All your data, including your money, will be wiped from our system.")
+		option = input("Indicate yes (y) or no (n) >>> ")
 		if(option.lower() == 'yes' or option.lower() == 'y'):
 			deleteAccount(email)
+		else:
+			print("ABORTING DELETE...")
+			time.sleep(3)
+			os.system('cls')
+			return email
+
+		print("\nClearing in 3 seconds...\n")
+		time.sleep(3)
+		os.system('cls')
+
+		return False
+	
+	elif (int(option) == 6):
+		print("Logging out...")
+		time.sleep(3)
+		os.system('cls')
+
+		return False
 
 
 def checkAccountBalance(email):
 	print()
-	accountBalanceQuery = (f"SELECT Balance FROM accounts WHERE Email = '{email}';")
+	accountBalanceQuery = (f"SELECT Balance FROM accounts1 WHERE Email = '{email}';")
 	cursor.execute(accountBalanceQuery)
 	#row = cursor.fetchone(accountBalanceQuery)
 
@@ -134,14 +215,15 @@ def checkAccountBalance(email):
 
 	return True
 
-def depositFunds(email, amountToDeposit): #THIS IS FUNDAMENTALLY FLAWED?
-	accountBalanceQuery = (f"SELECT Balance FROM accounts WHERE Email = '{email}';")
+
+def depositFunds(email, amountToDeposit): 
+	accountBalanceQuery = (f"SELECT Balance FROM accounts1 WHERE Email = '{email}';")
 	cursor.execute(accountBalanceQuery)
 	balance = cursor.fetchall()
 
 	#print(f"TROUBLESHOOTING: BALANCE IS {balance[0][0]}.")
 
-	updateFundsQuery = (f"UPDATE accounts SET Balance = {float(balance[0][0]) + amountToDeposit} WHERE Email = '{email}';") #get the deposit
+	updateFundsQuery = (f"UPDATE accounts1 SET Balance = {float(balance[0][0]) + amountToDeposit} WHERE Email = '{email}';") #get the deposit
 	cursor.execute(updateFundsQuery)
 
 	checkAccountBalance(email)
@@ -151,7 +233,7 @@ def depositFunds(email, amountToDeposit): #THIS IS FUNDAMENTALLY FLAWED?
 
 def withdrawFunds(email, amountToWithdraw):
 	#first, get the balance in the account
-	viewAccountBalanceQuery = (f"SELECT Balance FROM accounts WHERE Email = '{email}';")
+	viewAccountBalanceQuery = (f"SELECT Balance FROM accounts1 WHERE Email = '{email}';")
 	cursor.execute(viewAccountBalanceQuery)
 
 	total = cursor.fetchall()
@@ -161,13 +243,13 @@ def withdrawFunds(email, amountToWithdraw):
 		print("NOT ENOUGH FUNDS")
 		return False
 	else:
-		updateFundsQuery = (f"UPDATE accounts SET Balance = {float(total[0][0]) - amountToWithdraw} WHERE Email = '{email}';") #get the deposit
+		updateFundsQuery = (f"UPDATE accounts1 SET Balance = {float(total[0][0]) - amountToWithdraw} WHERE Email = '{email}';") #get the deposit
 		cursor.execute(updateFundsQuery)
 		checkAccountBalance(email)
 
 
 	"""
-	getBalanceQuery = (f"SELECT Balance FROM accounts WHERE Email = '{email}';") #get the deposit
+	getBalanceQuery = (f"SELECT Balance FROM accounts1 WHERE Email = '{email}';") #get the deposit
 	cursor.execute(getBalanceQuery)
 
 	if(cursor.fetchone()[0] <= 0):
@@ -179,99 +261,80 @@ def withdrawFunds(email, amountToWithdraw):
 		print("NOT SUFFICIENT FUNDS.")
 		return False
 
-	addNewBalanceQuery = (f"INSERT INTO accounts(Email, Balance) VALUES('{email}', {newBalance});")
+	addNewBalanceQuery = (f"INSERT INTO accounts1(Email, Balance) VALUES('{email}', {newBalance});")
 	cursor.execute(addNewBalanceQuery)
 	return True
 	"""
 
+
 def createNewAccount(email, password, name, balance):
 	print("THANK YOU. PROCESSING...")
 
-	#print(f"INSERT INTO accounts VALUES('{str(name)}', '{str(email)}', '{str(password)}', {float(balance)});")
+	#print(f"INSERT INTO accounts1 VALUES('{str(name)}', '{str(email)}', '{str(password)}', {float(balance)});")
 	#print()
-	createAccount = (f"INSERT INTO accounts VALUES('{str(name.upper())}', '{str(email.lower())}', '{str(password)}', {float(balance)});")
+	createAccount = (f"INSERT INTO accounts1 VALUES('{str(name.upper())}', '{str(email.lower())}', '{str(password)}', {float(balance)});")
 
 	cursor.execute(createAccount) #error here
 
-	print("YOUR ACCOUNT INFORMATION:")
-	viewNewAccountInfo = (f"SELECT * FROM accounts WHERE Email = '{email}';")
-	cursor.execute(viewNewAccountInfo)
-	for item in cursor:
-		print(item)
+	viewAccountDetails(email)
 	print("IF ANYTHING IS INCORRECT, PLEASE DON'T HESITATE TO CHANGE YOUR ACCOUNT DETAILS.")
 	return True
 
+
 def deleteAccount(email):
-	#getDeleteQuery = (f"SELECT Email FROM accounts WHERE Email = '{email}';") 
+	#getDeleteQuery = (f"SELECT Email FROM accounts1 WHERE Email = '{email}';") 
 	#cursor.execute(getDeleteQuery)
 	
 	#if(cursor.fetchone()[0] <= 0):
 	#	print("EMAIL NOT FOUND")
 	#	return False
 	
-	deleteCommand = (f"DELETE FROM accounts WHERE Email = '{email}';")
+	deleteCommand = (f"DELETE FROM accounts1 WHERE Email = '{email}';")
 	cursor.execute(deleteCommand)
 
-	print("ACCOUNT DELETED")
+	print("...")
+
+	print("ACCOUNT DELETED.")
 
 	return True
+
 
 def modifyAccountDetails(email, value, columnToChange):
 	#three things that can be changed: email, name, and password
  
 	if(columnToChange.lower() == 'email'):
-		changeRequest = (f"UPDATE accounts SET Email = '{value}' WHERE Email = '{email}';")
+		changeRequest = (f"UPDATE accounts1 SET Email = '{value}' WHERE Email = '{email}';")
+		email = value
+
 	elif(columnToChange.lower() == 'name'):
-		changeRequest = (f"UPDATE accounts SET Name = '{value}' WHERE Email = '{email}';")
+		changeRequest = (f"UPDATE accounts1 SET Name = '{value}' WHERE Email = '{email}';")
 	elif(columnToChange.lower() == 'password'):
-		changeRequest = (f"UPDATE accounts SET Password = '{value}' WHERE Email = '{email}';")
+		changeRequest = (f"UPDATE accounts1 SET Password = '{value}' WHERE Email = '{email}';")
 	else:
 		print("INVALID INPUT.")
 		return False
 	
 	cursor.execute(changeRequest)
 
-	viewAccountDetails()
-	
-	"""
-	if(columnToChange.lower() == "email"):
-		changeEmail = (f"INSERT INTO accounts(Email) VALUES('{value}');")
-		cursor.execute(changeEmail)
-		if(cursor.fetchone()[0] <= 0):
-			print("EMAIL NOT FOUND")
-			return False
-		return True
+	viewAccountDetails(email)
 
-	elif(columnToChange.lower() == "name"):
-		changeName = (f"INSERT INTO accounts(Email, Name) VALUES('{email}', '{value}');")
-		cursor.execute(changeName)
-		if(cursor.fetchone()[0] <= 0):
-			print("EMAIL NOT FOUND")
-			return False
-		return True
-		
-	elif(columnToChange.lower() == "password"):
-		changePassword = (f"INSERT INTO accounts(Email, Password) VALUES('{email}', '{value}');")
-		cursor.execute(changePassword)
-		if(cursor.fetchone()[0] <= 0):
-			print("EMAIL NOT FOUND")
-			return False
-		return True
-	else:
-		print("INVALID INPUT.")
-		return False
-	"""
+	return email
 	
-
+	
 def viewAccountDetails(email):
-	viewAccountDetailsQuery = (f"SELECT * FROM accounts WHERE Email = '{email}'") #get the information from the table
+	viewAccountDetailsQuery = (f"SELECT * FROM accounts1 WHERE Email = '{email}'") #get the information from the table
 	cursor.execute(viewAccountDetailsQuery)
+	accountDetails = cursor.fetchall()
 
-	print("YOUR ACCOUNT DETAILS") #print data
-	for item in cursor:
-		print(item)
-		print('\n')
+	print("\nYOUR ACCOUNT DETAILS") #print data
 
+	print(f"NAME: {accountDetails[0][0]}")
+	print(f"EMAIL: {accountDetails[0][1]}")
+	print(f"PASSWORD: {accountDetails[0][2]}")
+	print(f"BALANCE: {'{:.2f}'.format(accountDetails[0][3])}")
+
+	print()
+	
 	return True #attests that the function went off without a hitch
 
 
@@ -294,7 +357,7 @@ class testApplication(unittest.TestCase):
 		testApplication.assertTrue(result)
 
 	def testMODIFYACCOUNTDETAILS(self):
-		result = modifyAccountDetails("anushkabhave8@gmail.com", "Arin Bhave", "name")
+		result = modifyAccountDetails("anushkabhave8@gmail.com", "Anushka Alok Bhave", "name")
 		testApplication.assertTrue(result)
 
 	def testDELETEACCOUNT(self):
@@ -303,23 +366,35 @@ class testApplication(unittest.TestCase):
 
 print()
 
-#test = input("enter a letter >>> ")
 
-#createNewAccount("a@gmail.com", "test", "A Bhave", 0.0)
-
-#email = passwordValidation()
-
-print()
-#option = input("start? >>> ")
-#while(option.lower() == "yes"):
-#	loginScreen(email)
-#	option = input("go again? >>> ")
-#	print()
+result = menuScreen()
+while(result == True): # if it returns something to do with creating an account
+	result = menuScreen() 
 	
+	
+#while logging in, menuScreen should return email
 
-#print(test)
 
-print()
+while(result != False):
+	#once user is done with creating account
+ 
+	#if the user returns False, then they've signed out
+	#otherwise, the user returns their email (to ensure that, when email is modified, it is correct)
+	#in some cases, the function returns itself (recursion). this is used for input validation purposes
+	result1 = loginScreen(result)
+	while(result1 != False): 
+		result1 = loginScreen(result1)
+	
+	#if menuScreen return False, then the user has terminated the app
+	result = menuScreen()
+	while(result == True):
+		result = menuScreen()
+
+
+print("Thank you for using Code2College Bank.")
+print("SYSTEM TERMINATED.")
+
+
 
 cursor.close()
 connection.close()
